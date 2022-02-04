@@ -1,6 +1,10 @@
 import requests
 import pandas as pd
+from datetime import datetime
 from sqlalchemy import create_engine, MetaData, Integer, Text
+
+current_datetime = datetime.now().strftime("%d-%m-%Y")
+current_datetime = str(current_datetime)
 
 url1 = 'https://datos.cultura.gob.ar/dataset/37305de4-3cce-4d4b-9d9a-fec3ca61d09f/resource/4207def0-2ff7-41d5-9095-d42ae8207a5d/download/museo.csv'
 url2 = 'https://datos.cultura.gob.ar/dataset/37305de4-3cce-4d4b-9d9a-fec3ca61d09f/resource/392ce1a8-ef11-4776-b280-6f1c7fae16ae/download/cine.csv'
@@ -8,20 +12,20 @@ url3 = 'https://datos.cultura.gob.ar/dataset/37305de4-3cce-4d4b-9d9a-fec3ca61d09
 museum = requests.get(url1, allow_redirects=True)
 cinema = requests.get(url2, allow_redirects=True)
 library = requests.get(url3, allow_redirects=True)
-open('museum.csv', 'wb').write(museum.content)
-open('cinema.csv', 'wb').write(cinema.content)
-open('library.csv', 'wb').write(library.content)
+open('museos_'+current_datetime+'.csv', 'wb').write(museum.content)
+open('cines_'+current_datetime+'.csv', 'wb').write(cinema.content)
+open('bibliotecas_'+current_datetime+'.csv', 'wb').write(library.content)
 
 # 'postgres+psycopg2://<USERNAME>:<PASSWORD>@<IP_ADDRESS>:<PORT>/<DATABASE_NAME>'
 engine = create_engine('postgresql+psycopg2://postgres:pass@localhost:5432/Alkemy', echo=True)
 
 # normalizar las columnas del dataframe
-df_museum = pd.read_csv('museum.csv', sep=',', encoding='UTF-8')
+df_museum = pd.read_csv('museos_'+current_datetime+'.csv', sep=',', encoding='UTF-8')
 df_museum.rename(columns = {'categoria':'Categoría', 'provincia':'Provincia', 'localidad':'Localidad',
                             'nombre':'Nombre', 'direccion':'Dirección', 'telefono':'Teléfono',
                             'fuente':'Fuente'}, inplace = True)
-df_cinema = pd.read_csv('cinema.csv', sep=',', encoding='UTF-8')
-df_library = pd.read_csv('library.csv', sep=',', encoding='UTF-8')
+df_cinema = pd.read_csv('cines_'+current_datetime+'.csv', sep=',', encoding='UTF-8')
+df_library = pd.read_csv('bibliotecas_'+current_datetime+'.csv', sep=',', encoding='UTF-8')
 df_library.rename(columns = {'Domicilio':'Dirección'}, inplace = True)
 
 # dataframe principal
@@ -31,6 +35,7 @@ master_df = master_df.append(df_library)
 # tabla 1
 table1 = master_df[['Cod_Loc','IdProvincia','IdDepartamento','Categoría','Provincia','Localidad',
                        'Nombre','Dirección','CP','Teléfono','Mail','Web']]
+table1['Fecha de carga'] = pd.to_datetime('today').strftime("%d-%m-%Y")
 
 # postgre
 table1.to_sql(
@@ -64,6 +69,7 @@ table2 = table2.merge(table2_3, how='outer', left_index=True, right_index=True)
 table2.reset_index(inplace=True)
 table2.set_index('Categoría', inplace=True)
 table2 = table2[['Total por categoría','Fuente','Total por fuente','Provincia','Categorías por provincia']]
+table2['Fecha de carga'] = pd.to_datetime('today').strftime("%d-%m-%Y")
 
 # postgre
 table2.to_sql(
@@ -83,6 +89,7 @@ table2.to_sql(
 table3 = df_cinema[['Provincia','Pantallas','Butacas','espacio_INCAA']]
 aggregation_functions = {'Pantallas': 'sum', 'Butacas': 'sum','espacio_INCAA':'count'}
 table3 = table3.groupby(table3['Provincia']).aggregate(aggregation_functions)
+table3['Fecha de carga'] = pd.to_datetime('today').strftime("%d-%m-%Y")
 
 # postgre
 table3.to_sql(
