@@ -1,8 +1,6 @@
-Instalación de las libraries necesarias:  
-$ python -m pip install requests  
-$ python -m pip install pandas  
-$ python -m pip install psycopg2  
-$ python -m pip install sqlalchemy  
+
+git clone https://github.com/magdalenagam/Alkemy
+
 
 La configuración de la base de datos de postgreSQL es la siguiente:  
 postgres+psycopg2://<USERNAME>:<PASSWORD>@<IP_ADDRESS>:<PORT>/<DATABASE_NAME>  
