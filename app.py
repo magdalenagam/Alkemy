@@ -1,5 +1,5 @@
 import logging
-from datos import table1, table2, table3
+from datos import main_table, categories_table, cinema_table
 from config import DATABASE_URI
 from datetime import datetime
 from sqlalchemy import create_engine, MetaData, Integer, Text
@@ -11,7 +11,7 @@ engine = create_engine(DATABASE_URI)
 
 # postgres
 logging.info('Subiendo tabla 1 a PostgreSQL: main_table')
-table1.to_sql(
+main_table.to_sql(
     'main_table',
     engine,
     if_exists='replace',
@@ -31,9 +31,9 @@ table1.to_sql(
         "Mail": Text,
         "Web": Text
         })
-logging.info('Subiendo tabla 2 a PostgreSQL: category_table')
-table2.to_sql(
-    'category_table',
+logging.info('Subiendo tabla 2 a PostgreSQL: categories_table')
+categories_table.to_sql(
+    'categories_table',
     engine,
     if_exists='replace',
     chunksize=500,
@@ -45,7 +45,7 @@ table2.to_sql(
         "Categorías por provincia": Integer,
         })
 logging.info('Subiendo tabla 3 a PostgreSQL: cinema_table')
-table3.to_sql(
+cinema_table.to_sql(
     'cinema_table',
     engine,
     if_exists='replace',
